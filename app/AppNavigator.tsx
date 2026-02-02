@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from './HomeScreen';
-import AddBMIScreen from './index'; // ใช้ index.tsx เป็นหน้าเพิ่ม/คำนวณ
+import AddBMIScreen from './AddBMIScreen'; // ใช้ index.tsx เป็นหน้าเพิ่ม/คำนวณ
 import DeleteBMIScreen from './DeleteBMIScreen';
 
 const Tab = createBottomTabNavigator();
@@ -13,7 +13,14 @@ export default function AppNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
-          let iconName: any = route.name === 'History' ? 'list' : route.name === 'Calculate' ? 'calculate' : 'trash';
+          let iconName: any ;
+          if (route.name === 'Calculate') {
+            iconName = 'calculator';
+          } else if (route.name === 'History') {
+            iconName = 'list';
+          } else if (route.name === 'Manage') {
+            iconName = 'trash';
+          }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#4DB6AC',
