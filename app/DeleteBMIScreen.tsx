@@ -77,6 +77,13 @@ const DeleteBMIScreen = ({ navigation }: any) => {
         <Text style={styles.headerSubtitle}>Tap the icon to remove a record</Text>
       </View>
 
+
+
+
+
+
+      
+
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
