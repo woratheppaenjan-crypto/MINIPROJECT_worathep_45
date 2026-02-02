@@ -1,83 +1,158 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, } from 'react-native';
-import Slider from '@react-native-community/slider'; 
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput, 
+  KeyboardAvoidingView, 
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  SafeAreaView
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // ข้อ 8: ใช้งานไอคอน
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function AddBMIScreen() {
-  const [height, setHeight] = useState(170); //ตั้งค่าเก็บข้อมูล ผมตั้งเป็น 175/65 เพราะอิงจากค่าเฉลี่ยคนไทย
-  const [weight, setWeight] = useState(65);  
-  const [bmi, setBmi] = useState<string | null>(null);// useState<string | null>(null)เป็นการบอกว่าตัวแปร bmi นี้จะมีค่าเป็นได้แค่ "ตัวอักษร (String)" หรือ "ค่าว่าง (null)" เท่านั้น เพื่อป้องกัน Error จ้าา
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [bmi, setBmi] = useState<string | null>(null);
+  const navigation = useRouter()
 
   const calculateAndSave = async () => {
-    const bmiVal = (weight / ((height / 100) ** 2)).toFixed(1); //สูตรคำนวน BMI .toFixed(1) เป็นคำสั่งปัดเศษทศนิยมคับ
-    setBmi(bmiVal);// เกับค่าไว้
+    const h = parseFloat(height);
+    const w = parseFloat(weight);
 
-    const newData = {
-      id: Date.now().toString(),//เป็นการสร้างคล้ายๆเลขบัตรประชาชนของข้อมูลชุดนี้ เพื่อให้ข้อหมูแต่ล่ะตัว มี ID ไม่เหมือนกันจ้าา
-      bmi: bmiVal,//คือการนำค่า BMI ที่เราเพิ่งคำนวณเสร็จจากบรรทัดก่อนหน้ามาใส่ไว้ในกล่องนี้
-      date: new Date().toLocaleDateString(),//เป็นการดึงวันที่ปัจจุบันจากเครื่อง มาบันทึกไว้ เพื่อให้ผู้ใช้รู้ว่าเขาคำนวณค่านี้ไว้เมื่อไหร่
-      imageUrl: 'https://cdn-icons-png.flaticon.com/512/2815/2815428.png' 
-    };
+    if (h > 0 && w > 0) {
+      const bmiVal = (w / ((h / 100) ** 2)).toFixed(1);
+      setBmi(bmiVal);
 
-    const existingData = await AsyncStorage.getItem('@bmi_history');//ดึงข้อมูลจากประวัติคับ
-    const history = existingData ? JSON.parse(existingData) : [];//เเปลงเป็น อาเร
-    history.push(newData);//นำข้อมูลใหม่มาต่อ
-    await AsyncStorage.setItem('@bmi_history', JSON.stringify(history));//อัพเดทข้อมูลลงประวัติ
+      const newData = {
+        id: Date.now().toString(),
+        bmi: bmiVal,
+        date: new Date().toLocaleDateString(),
+        imageUrl: 'https://cdn-icons-png.flaticon.com/512/2815/2815428.png' 
+      };
+
+      const existingData = await AsyncStorage.getItem('@bmi_history');
+      const history = existingData ? JSON.parse(existingData) : [];
+      history.push(newData);
+      await AsyncStorage.setItem('@bmi_history', JSON.stringify(history));
+      
+      Keyboard.dismiss();
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>BMI Calculator</Text>
-      
-      
-      <View style={styles.card}>
-        <Text>Height</Text>
-        <Text style={styles.valueText}>{height} <Text style={styles.unit}>cm</Text></Text>
-        <Slider
-          style={{width: '100%', height: 40}}
-          minimumValue={100} maximumValue={220}
-          value={height} onValueChange={v => setHeight(Math.floor(v))}//เมื่อเลื่อนจะสั่ง setHeight เพื่ออัปเดตตัวเลขทันที
-          minimumTrackTintColor="#4DB6AC"
-        />
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FBFC' }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+        >
+          
+          <View style={styles.headerRow}>
+            <View style={{ width: 40 }} /> {/* Space เพื่อให้ตัวหนังสืออยู่กลาง */}
+            <Text style={styles.headerTitle}>BMI Calculator</Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('/HomeScreen')} // กดแล้วไปหน้า History
+              style={styles.iconButton}
+            >
+              <Ionicons name="time-outline" size={28} color="#4DB6AC" />
+            </TouchableOpacity>
+          </View>
 
-      
-      <View style={styles.cardRow}>
-        <TouchableOpacity onPress={() => setWeight(weight - 1)} style={styles.roundBtn}><Ionicons name="remove" size={24}/></TouchableOpacity>
-        <View style={{alignItems:'center'}}>
-          <Text>Weight</Text>
-          <Text style={styles.valueText}>{weight} <Text style={styles.unit}>kg</Text></Text>
-        </View>
-        <TouchableOpacity onPress={() => setWeight(weight + 1)} style={styles.roundBtn}><Ionicons name="add" size={24}/></TouchableOpacity>
-      </View>
+          {/* ช่องกรอก Height */}
+          <View style={styles.inputCard}>
+            <Text style={styles.label}>Height</Text>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="0"
+                keyboardType="decimal-pad"
+                value={height}
+                onChangeText={setHeight}
+                placeholderTextColor="#CCC"
+              />
+              <Text style={styles.unitText}>cm</Text>
+            </View>
+          </View>
 
-      
-      {bmi && (
-        <View style={styles.resultContainer}>
-          <Text style={styles.bmiResult}>{bmi}</Text>
-          <Text style={{color: '#4DB6AC', fontWeight: 'bold'}}>Normal Weight</Text>
-        </View>
-      )}
+          {/* ช่องกรอก Weight */}
+          <View style={styles.inputCard}>
+            <Text style={styles.label}>Weight</Text>
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="0"
+                keyboardType="decimal-pad"
+                value={weight}
+                onChangeText={setWeight}
+                placeholderTextColor="#CCC"
+              />
+              <Text style={styles.unitText}>kg</Text>
+            </View>
+          </View>
 
-      <TouchableOpacity style={styles.mainBtn} onPress={calculateAndSave}> 
-        <Text style={styles.mainBtnText}>CALCULATE BMI</Text> 
-      </TouchableOpacity>
-    </View>
+          {/* ส่วนแสดงผลลัพธ์ */}
+          {bmi && (
+            <View style={styles.resultBox}>
+               <Text style={styles.bmiNumber}>{bmi}</Text>
+               <Text style={styles.bmiStatus}>
+                 {parseFloat(bmi) < 18.5 ? 'Underweight' : 
+                  parseFloat(bmi) < 23 ? 'Normal Weight' : 'Overweight'}
+               </Text>
+               <Text style={styles.motivationText}>Great job, keep it up!</Text>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.calculateBtn} onPress={calculateAndSave}>
+            <Text style={styles.btnText}>CALCULATE BMI</Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5', padding: 25, justifyContent: 'center' },
-  header: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
-  card: { backgroundColor: 'white', padding: 20, borderRadius: 20, alignItems: 'center', marginBottom: 20, elevation: 3 },
-  cardRow: { backgroundColor: 'white', padding: 20, borderRadius: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, elevation: 3 },
-  valueText: { fontSize: 35, fontWeight: 'bold' },
-  unit: { fontSize: 16, fontWeight: 'normal', color: 'gray' },
-  roundBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0F2F1', justifyContent: 'center', alignItems: 'center' },
-  mainBtn: { backgroundColor: '#4DB6AC', padding: 18, borderRadius: 15, alignItems: 'center', marginTop: 10 },
-  mainBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  resultContainer: { alignItems: 'center', marginVertical: 20 },
-  bmiResult: { fontSize: 48, fontWeight: 'black' }
+  container: { flex: 1, paddingHorizontal: 24 },
+  headerRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 20, 
+    marginBottom: 40 
+  },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#333' },
+  iconButton: { padding: 5 },
+  inputCard: { 
+    backgroundColor: '#FFF', 
+    borderRadius: 20, 
+    padding: 20, 
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+  },
+  label: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 5 },
+  inputRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
+  textInput: { fontSize: 45, fontWeight: 'bold', color: '#333', textAlign: 'center', minWidth: 100 },
+  unitText: { fontSize: 20, color: '#AAA', marginLeft: 5 },
+  resultBox: { alignItems: 'center', marginVertical: 20 },
+  bmiNumber: { fontSize: 60, fontWeight: '900', color: '#333' },
+  bmiStatus: { fontSize: 20, fontWeight: 'bold', color: '#4DB6AC', marginTop: 5 },
+  motivationText: { fontSize: 13, color: '#AAA', marginTop: 5 },
+  calculateBtn: { 
+    backgroundColor: '#4DB6AC', 
+    paddingVertical: 18, 
+    borderRadius: 18, 
+    alignItems: 'center', 
+    marginTop: 'auto',
+    marginBottom: 30 
+  },
+  btnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
 });
-

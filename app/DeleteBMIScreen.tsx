@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Alert, 
-  SafeAreaView 
-} from 'react-native';
+  View, Text, FlatList,  TouchableOpacity, StyleSheet, Alert,SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons'; // ข้อ 8: การใช้งานไอคอน
 
@@ -83,6 +76,13 @@ const DeleteBMIScreen = ({ navigation }: any) => {
         <Text style={styles.headerTitle}>Manage History</Text>
         <Text style={styles.headerSubtitle}>Tap the icon to remove a record</Text>
       </View>
+
+
+
+
+
+
+      
 
       <FlatList
         data={history}
