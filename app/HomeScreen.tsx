@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  Image, 
-  StyleSheet, 
-  SafeAreaView, 
-  TouchableOpacity 
+import { View, Text, FlatList, Image, StyleSheet, SafeAreaView, TouchableOpacity 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
